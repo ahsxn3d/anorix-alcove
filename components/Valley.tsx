@@ -1,8 +1,8 @@
 "use client";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Sequence from "./Sequence";
+const Valley3D = dynamic(() => import("./Valley3D"), { ssr: false });
 import { Arrow } from "./kit/ui";
 const ch = [
   { k: "06:10 · Dawn", h: "A home anywhere quiet.", p: "Alcove capsules arrive on one truck, stand on four screw piles and leave no trace when they go." },
@@ -11,12 +11,12 @@ const ch = [
   { k: "23:00 · Night", h: "Lights on. Nobody around.", p: "Warm 2,200 K lighting that never spills into the forest, and a skylight above the bed for the stars." },
 ];
 export default function Valley() {
-  const root = useRef<HTMLElement>(null), frame = useRef(0);
+  const root = useRef<HTMLElement>(null), frame = useRef(0), [ready, setReady] = useState(false);
   const [c, setC] = useState(0);
   useEffect(() => {
     const st = ScrollTrigger.create({ trigger: root.current, start: "top top", end: "bottom bottom", onUpdate: (s) => {
       const x = Math.min(3.999, s.progress * 4), seg = Math.floor(x), fr = x - seg, mv = Math.min(1, Math.max(0, (fr - 0.55) / 0.45));
-      frame.current = Math.min(3, seg + mv * mv * (3 - 2 * mv)) * 24;
+      frame.current = Math.min(3, seg + mv * mv * (3 - 2 * mv));
       setC((p) => (p === seg ? p : seg));
     } });
     return () => st.kill();
@@ -25,9 +25,8 @@ export default function Valley() {
   return (
     <section ref={root} className="relative h-[400vh] bg-pine" aria-label="A day at an Alcove">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <Image src="/seq/d/0.webp" alt="A white Alcove capsule on an oak deck among tall pines at dawn" fill priority sizes="100vw" className="object-cover max-md:hidden" />
-        <Image src="/seq/m/0.webp" alt="A white Alcove capsule on an oak deck among tall pines at dawn" fill priority sizes="100vw" className="object-cover md:hidden" />
-        <Sequence frame={frame} count={73} dir="/seq/d" mdir="/seq/m" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#9db3c9,#f2cfb4_55%,#56643c_56%,#1e261c)]" />
+        <div className={`absolute inset-0 transition-opacity duration-1000 ${ready ? "opacity-100" : "opacity-0"}`}><Valley3D t={frame} onReady={() => setReady(true)} /></div>
         <div className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ${night ? "opacity-100" : "opacity-60"} bg-gradient-to-t from-pine/80 via-transparent to-transparent md:bg-gradient-to-r md:from-pine/70 md:via-pine/5`} />
         <div className="wrap relative flex h-full flex-col justify-end pb-[13vh] text-paper md:justify-center md:pb-0">
           <div className="relative min-h-[300px] md:min-h-[400px]">
