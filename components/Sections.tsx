@@ -71,7 +71,7 @@ export function Inside() {
             ))}
           </ul>
         </div>
-        <div data-clip className="relative aspect-[4/5] overflow-hidden rounded-[28px] lg:col-span-6 lg:col-start-7 lg:aspect-[5/6]"><div data-clip-img className="absolute inset-0"><Image src="/img/world_3_w.webp" alt="The capsule glowing warm at night in a dark pine valley" fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover object-[62%_50%]" /></div></div>
+        <div data-clip className="relative aspect-[4/5] overflow-hidden rounded-[28px] lg:col-span-6 lg:col-start-7 lg:aspect-[5/6]"><div data-clip-img className="absolute inset-0"><Image src="/img/night.webp" alt="The capsule glowing warm at night among tall pines" fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" /></div></div>
       </div>
     </section>
   );

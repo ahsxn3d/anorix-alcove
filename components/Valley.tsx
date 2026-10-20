@@ -1,10 +1,9 @@
 "use client";
-import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lazy3D from "./kit/Lazy3D";
+import Sequence from "./Sequence";
 import { Arrow } from "./kit/ui";
-const ValleyScene = dynamic(() => import("./ValleyScene"), { ssr: false });
 const ch = [
   { k: "06:10 · Dawn", h: "A home anywhere quiet.", p: "Alcove capsules arrive on one truck, stand on four screw piles and leave no trace when they go." },
   { k: "12:40 · Midday", h: "Powered by the sky.", p: "4.2 kW of roof solar, 20 kWh of storage and rainwater filtration. No grid, no generator, no noise." },
@@ -12,12 +11,12 @@ const ch = [
   { k: "23:00 · Night", h: "Lights on. Nobody around.", p: "Warm 2,200 K lighting that never spills into the forest, and a skylight above the bed for the stars." },
 ];
 export default function Valley() {
-  const root = useRef<HTMLElement>(null), time = useRef(0.15);
+  const root = useRef<HTMLElement>(null), frame = useRef(0);
   const [c, setC] = useState(0);
   useEffect(() => {
     const st = ScrollTrigger.create({ trigger: root.current, start: "top top", end: "bottom bottom", onUpdate: (s) => {
       const x = Math.min(3.999, s.progress * 4), seg = Math.floor(x), fr = x - seg, mv = Math.min(1, Math.max(0, (fr - 0.55) / 0.45));
-      time.current = Math.min(3, Math.max(0.15, seg + mv * mv * (3 - 2 * mv)));
+      frame.current = Math.min(3, seg + mv * mv * (3 - 2 * mv)) * 24;
       setC((p) => (p === seg ? p : seg));
     } });
     return () => st.kill();
@@ -26,7 +25,9 @@ export default function Valley() {
   return (
     <section ref={root} className="relative h-[400vh] bg-pine" aria-label="A day at an Alcove">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <Lazy3D poster="/img/world_0.15_w.webp" posterSm="/img/world_0.15_m.webp" priority eager alt="A white capsule home on a timber deck in a pine valley at dawn" render={({ onReady, running }) => <ValleyScene time={time} running={running} onReady={onReady} />} />
+        <Image src="/seq/d/0.webp" alt="A white Alcove capsule on an oak deck among tall pines at dawn" fill priority sizes="100vw" className="object-cover max-md:hidden" />
+        <Image src="/seq/m/0.webp" alt="A white Alcove capsule on an oak deck among tall pines at dawn" fill priority sizes="100vw" className="object-cover md:hidden" />
+        <Sequence frame={frame} count={73} dir="/seq/d" mdir="/seq/m" />
         <div className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ${night ? "opacity-100" : "opacity-60"} bg-gradient-to-t from-pine/80 via-transparent to-transparent md:bg-gradient-to-r md:from-pine/70 md:via-pine/5`} />
         <div className="wrap relative flex h-full flex-col justify-end pb-[13vh] text-paper md:justify-center md:pb-0">
           <div className="relative min-h-[300px] md:min-h-[400px]">
