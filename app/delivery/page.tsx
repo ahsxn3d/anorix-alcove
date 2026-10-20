@@ -1,0 +1,5 @@
+import { Delivery } from "@/components/Sections";
+import { Head } from "@/components/UI";
+export const metadata = { title: "Delivery" };
+const q = [["Access", "A 7.5-tonne truck needs a 3 m track to within 20 m of the spot. If not, we lift from the road with a longer crane."], ["Ground", "Screw piles work on most soils and slopes up to 15°. No concrete, and they come out clean."], ["Where we deliver", "Mainland Europe and the UK in the concept. Islands and alpine sites get a survey visit first."], ["After", "One-year check, battery health report and window seals. Parts by courier."]];
+export default function Page() { return (<main><Head k="Delivery" title={<>One truck. <em>One morning.</em></>} lead="From a pin on a map to a key in your hand, usually in under three months." /><Delivery /><section className="bg-paper pb-[clamp(80px,9vw,140px)]"><div className="wrap grid gap-px overflow-hidden rounded-[28px] bg-ink/10 md:grid-cols-2">{q.map(([h, t]) => <div key={h} className="bg-sand p-8"><p className="display text-[30px]">{h}</p><p className="mt-3 text-[15px] leading-[1.6] text-ink/70">{t}</p></div>)}</div></section></main>); }

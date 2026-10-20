@@ -1,28 +1,26 @@
 "use client";
-import Image from "next/image";
+import Capsule from "./Capsule";
+import { models, places } from "@/lib/data";
+import { useCart } from "@/lib/commerce/cart";
 import { useState } from "react";
 import { Arrow, Marquee } from "./kit/ui";
 
+function BagPill() { const { count } = useCart(); return <a href="/cart" className="rounded-full px-4 py-2 transition-colors hover:bg-ink/5">Bag{count ? ` · ${count}` : ""}</a>; }
 export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="wrap flex items-center justify-between pt-5">
-        <a href="#" aria-label="Alcove home" className="display flex items-center gap-2 rounded-full bg-paper/85 px-4 py-2 text-[22px] text-ink backdrop-blur-md"><svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="6" fill="none" stroke="currentColor" strokeWidth="1.8" /><rect x="7" y="9" width="10" height="6" rx="3" fill="#b8794e" /></svg>alcove</a>
+        <a href="/" aria-label="Alcove home" className="display flex items-center gap-2 rounded-full bg-paper/85 px-4 py-2 text-[22px] text-ink backdrop-blur-md"><svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="6" fill="none" stroke="currentColor" strokeWidth="1.8" /><rect x="7" y="9" width="10" height="6" rx="3" fill="#b8794e" /></svg>alcove</a>
         <nav aria-label="Primary" className="hidden items-center gap-1 rounded-full bg-paper/85 p-1.5 text-[14px] text-ink backdrop-blur-md md:flex">
-          {[["Capsules", "#models"], ["Inside", "#inside"], ["Places", "#places"], ["Delivery", "#delivery"]].map(([l, h]) => <a key={l} href={h} className="rounded-full px-4 py-2 transition-colors hover:bg-ink/5">{l}</a>)}
-          <a href="#book" className="ml-1 rounded-full bg-moss px-4 py-2 text-paper transition-colors hover:bg-clay">Book a stay</a>
+          {[["Capsules", "/capsules"], ["Inside", "/how-it-works"], ["Places", "/stays"], ["Delivery", "/delivery"]].map(([l, h]) => <a key={l} href={h} className="rounded-full px-4 py-2 transition-colors hover:bg-ink/5">{l}</a>)}
+          <BagPill /><a href="/book" className="ml-1 rounded-full bg-moss px-4 py-2 text-paper transition-colors hover:bg-clay">Book a stay</a>
         </nav>
-        <a href="#book" className="rounded-full bg-moss px-4 py-2.5 text-[14px] text-paper md:hidden">Book</a>
+        <span className="flex items-center gap-2 md:hidden"><a href="/cart" className="rounded-full bg-paper/85 px-4 py-2.5 text-[14px] text-ink backdrop-blur-md">Bag</a><a href="/book" className="rounded-full bg-moss px-4 py-2.5 text-[14px] text-paper">Book</a></span>
       </div>
     </header>
   );
 }
 
-const models = [
-  { n: "Solo", img: "model_0.78_ede6da", area: "14 m²", sleeps: "1–2", w: "3.3 m", price: "€ 39,000", lead: "8 weeks", d: "A writing room, a guest room, a reason to finally use that plot. Bed, desk, wet room." },
-  { n: "Duo", img: "model_1_e3d9c6", area: "22 m²", sleeps: "2", w: "4.2 m", price: "€ 58,000", lead: "10 weeks", d: "Our most-booked stay. Queen bed under the skylight, galley kitchen, shower with a view." },
-  { n: "Lodge", img: "model_1.3_d9cdb6", area: "31 m²", sleeps: "2–4", w: "5.5 m", price: "€ 79,000", lead: "12 weeks", d: "Two sleeping zones and a full kitchen. Lives year-round at −20 °C on the same solar roof." },
-];
 export function Models() {
   const [i, setI] = useState(1); const m = models[i];
   return (
@@ -34,7 +32,7 @@ export function Models() {
         </div>
         <div className="mt-14 grid items-stretch gap-6 lg:grid-cols-12">
           <div className="relative aspect-[6/5] overflow-hidden rounded-[28px] bg-sand lg:col-span-7">
-            {models.map((x, k) => <Image key={x.n} src={`/img/${x.img}.webp`} alt={`Alcove ${x.n} capsule on a timber deck`} fill sizes="(min-width:1024px) 58vw, 100vw" className={`object-cover transition-opacity duration-700 ${k === i ? "opacity-100" : "opacity-0"}`} />)}
+            <Capsule size={[0.78, 1, 1.3][i]} hour={0.7} />
             <span className="absolute left-5 top-5 rounded-full bg-paper/90 px-3 py-1.5 text-[13px]">{m.w} long · arrives on one truck</span>
           </div>
           <div className="flex flex-col rounded-[28px] bg-sand p-7 md:p-10 lg:col-span-5">
@@ -42,7 +40,7 @@ export function Models() {
             <h3 className="display mt-10 text-[64px]">{m.n}</h3>
             <p className="mt-4 min-h-[4.8em] max-w-[40ch] text-[16px] leading-[1.6] text-ink/70">{m.d}</p>
             <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-ink/10 pt-6">{[["Floor", m.area], ["Sleeps", m.sleeps], ["Lead time", m.lead]].map(([a, b]) => <div key={a}><dt className="eyebrow text-mute">{a}</dt><dd className="display mt-2 text-[28px]">{b}</dd></div>)}</dl>
-            <div className="mt-auto flex items-end justify-between pt-10"><div><p className="eyebrow text-mute">Delivered &amp; installed</p><p className="display mt-1 text-[36px]">{m.price}</p></div><a href="#book" className="btn bg-moss text-paper hover:bg-clay">Enquire <Arrow /></a></div>
+            <div className="mt-auto flex items-end justify-between pt-10"><div><p className="eyebrow text-mute">Delivered &amp; installed</p><p className="display mt-1 text-[36px]">{m.price}</p></div><a href={`/capsules/${m.n.toLowerCase()}`} className="btn bg-moss text-paper hover:bg-clay">See the {m.n} <Arrow /></a></div>
           </div>
         </div>
       </div>
@@ -71,19 +69,12 @@ export function Inside() {
             ))}
           </ul>
         </div>
-        <div data-clip className="relative aspect-[4/5] overflow-hidden rounded-[28px] lg:col-span-6 lg:col-start-7 lg:aspect-[5/6]"><div data-clip-img className="absolute inset-0"><Image src="/img/night.webp" alt="The capsule glowing warm at night among tall pines" fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" /></div></div>
+        <div data-clip className="relative aspect-[4/5] overflow-hidden rounded-[28px] lg:col-span-6 lg:col-start-7 lg:aspect-[5/6]"><div data-clip-img className="absolute inset-0"><Capsule mode="night" hour={3} bg="#1e261c" /></div></div>
       </div>
     </section>
   );
 }
 
-const places = [
-  { n: "Hardanger, Norway", x: 47, y: 24, s: "Fjord edge · 6 capsules", from: "€ 240 / night" },
-  { n: "Cairngorms, Scotland", x: 27, y: 33, s: "Pine forest · 4 capsules", from: "€ 190 / night" },
-  { n: "Engadin, Switzerland", x: 57, y: 55, s: "Alpine meadow · 3 capsules", from: "€ 310 / night" },
-  { n: "Picos de Europa, Spain", x: 20, y: 63, s: "Limestone valley · 5 capsules", from: "€ 170 / night" },
-  { n: "Lapland, Finland", x: 74, y: 13, s: "Aurora field · 4 capsules", from: "€ 280 / night" },
-];
 // Static, deterministic contour lines around each valley (same output on server and client).
 const contours = places.flatMap((q, pi) => Array.from({ length: 6 }, (_, ring) => {
   const r = 3 + ring * 2.6; let d = "";
@@ -115,7 +106,7 @@ export function Places() {
           </div>
           <div className="flex flex-col rounded-[28px] bg-paper p-7 md:p-9 lg:col-span-4">
             <ul className="space-y-1">{places.map((q, k) => <li key={q.n}><button onClick={() => setI(k)} className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-[15px] transition-colors ${k === i ? "bg-moss text-paper" : "hover:bg-sand"}`}>{q.n}<span className={`text-[13px] ${k === i ? "text-paper/70" : "text-mute"}`}>{q.from.split(" /")[0]}</span></button></li>)}</ul>
-            <div className="mt-auto border-t border-ink/10 pt-6"><p className="eyebrow text-mute">{p.s}</p><p className="display mt-2 text-[34px]">{p.from}</p><a href="#book" className="btn mt-5 bg-moss text-paper hover:bg-clay">Check dates <Arrow /></a></div>
+            <div className="mt-auto border-t border-ink/10 pt-6"><p className="eyebrow text-mute">{p.s}</p><p className="display mt-2 text-[34px]">{p.from}</p><a href={`/stays/${p.slug}`} className="btn mt-5 bg-moss text-paper hover:bg-clay">Check dates <Arrow /></a></div>
           </div>
         </div>
       </div>
@@ -160,6 +151,7 @@ export function Book() {
         </form>
       </div>
       <p className="display select-none px-[clamp(16px,3.4vw,48px)] text-[24vw] leading-[.78] text-paper/[0.1]" aria-hidden="true">alcove</p>
+      <nav aria-label="Sitemap" className="wrap flex flex-wrap gap-x-6 gap-y-2 border-t border-paper/10 py-6 text-[14px] text-paper/75">{[["Capsules", "/capsules"], ["Stays", "/stays"], ["Book", "/book"], ["How it works", "/how-it-works"], ["Delivery", "/delivery"], ["About", "/about"], ["FAQ", "/faq"], ["Contact", "/contact"], ["Bag", "/cart"]].map(([l, h]) => <a key={h} href={h} className="hover:text-glow">{l}</a>)}</nav>
       <div className="wrap flex flex-col justify-between gap-3 border-t border-paper/10 py-8 text-[12px] text-paper/60 md:flex-row"><span>© 2026 Alcove. A concept project by Anorix, not a real company.</span><span>Designed &amp; built by Anorix</span></div>
     </footer>
   );

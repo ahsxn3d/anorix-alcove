@@ -1,0 +1,5 @@
+import { Inside } from "@/components/Sections";
+import { Head } from "@/components/UI";
+export const metadata = { title: "How it works" };
+const sys = [["4.2 kW", "Roof solar on a Duo, enough for a normal stay in winter sun."], ["20 kWh", "Battery storage. About three grey days without sun."], ["220 L", "Rainwater tank with UV filtration and a 30 L hot-water cylinder."], ["−20 °C", "Triple glazing, wool insulation and an air-source heat pump."]];
+export default function Page() { return (<main><Head k="How it works" title={<>Built for the view, <em>not the grid.</em></>} lead="Power, water and heat run from the roof and the rain. Nothing to hook up, nothing humming in the trees." /><section className="bg-paper pb-[clamp(64px,7vw,110px)]"><div className="wrap grid gap-px overflow-hidden rounded-[28px] bg-ink/10 sm:grid-cols-2 lg:grid-cols-4">{sys.map(([v, t]) => <div key={v} className="bg-sand p-7"><p className="display text-[52px] text-clay">{v}</p><p className="mt-4 text-[15px] leading-[1.6] text-ink/70">{t}</p></div>)}</div></section><Inside /></main>); }

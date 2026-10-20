@@ -47,22 +47,32 @@ function Ridge({ z, y, w, h, seed, amp, base, tree, fogK, u }: { z: number; y: n
         #include <colorspace_fragment>
       }`} /></mesh>);
 }
+/** the room seen through the window, painted procedurally: oak back wall, lamp pool, bed, a skylight slot */
+let _room: THREE.CanvasTexture | null = null;
+function roomTex() { if (_room) return _room; const c = document.createElement("canvas"); c.width = 512; c.height = 256; const g = c.getContext("2d")!;
+  let gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, "#3a2a1e"); gr.addColorStop(0.55, "#7a5636"); gr.addColorStop(1, "#4a3424"); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
+  for (let x = 0; x < 512; x += 22) { g.fillStyle = `rgba(0,0,0,${0.06 + (x % 44 ? 0.03 : 0)})`; g.fillRect(x, 0, 2, 170); }
+  const rg = g.createRadialGradient(360, 120, 4, 360, 120, 190); rg.addColorStop(0, "rgba(255,196,128,.95)"); rg.addColorStop(0.35, "rgba(255,160,90,.45)"); rg.addColorStop(1, "rgba(255,140,70,0)"); g.fillStyle = rg; g.fillRect(0, 0, 512, 256);
+  g.fillStyle = "#c79a6c"; g.fillRect(0, 178, 512, 78); g.fillStyle = "rgba(0,0,0,.18)"; for (let x = 0; x < 512; x += 64) g.fillRect(x, 178, 1, 78);
+  g.fillStyle = "#efe6d6"; g.beginPath(); g.roundRect(40, 140, 230, 58, 14); g.fill(); g.fillStyle = "#e2d4bd"; g.beginPath(); g.roundRect(52, 124, 70, 26, 10); g.fill(); g.fillStyle = "#b8794e"; g.beginPath(); g.roundRect(150, 150, 120, 46, 10); g.fill();
+  g.fillStyle = "#2a1d14"; g.fillRect(338, 60, 3, 70); g.fillStyle = "#ffd8a0"; g.beginPath(); g.arc(340, 58, 12, 0, Math.PI * 2); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; _room = t; return t; }
 function pineGeo() {
   const parts: THREE.BufferGeometry[] = [];
   const tiers = 7; for (let i = 0; i < tiers; i++) { const t = i / (tiers - 1), r = 1.15 * (1 - t * 0.82), hh = 1.25 - t * 0.5; const g = new THREE.ConeGeometry(r, hh, 18, 2, true); const p = g.attributes.position; for (let j = 0; j < p.count; j++) { const y = p.getY(j); if (y < hh / 2 - 0.01) { const a = Math.atan2(p.getZ(j), p.getX(j)), k = 0.78 + 0.32 * Math.abs(Math.sin(a * 5 + i * 1.7)) + 0.08 * Math.sin(a * 13 + i); p.setX(j, p.getX(j) * k); p.setZ(j, p.getZ(j) * k); if (y < 0) p.setY(j, y - 0.12 * k); } } g.translate(0, 1.1 + i * 0.62 + hh / 2, 0); parts.push(g.toNonIndexed()); }
   const tr = new THREE.CylinderGeometry(0.08, 0.13, 1.6, 6); tr.translate(0, 0.8, 0); parts.push(tr.toNonIndexed());
   parts.forEach((g) => g.deleteAttribute("uv")); return mergeGeometries(parts)!;
 }
-function World({ t, mobile }: { t: MutableRefObject<number>; mobile: boolean }) {
+function World({ t, mobile, mode, size }: { t: MutableRefObject<number>; mobile: boolean; mode: Mode; size: number }) {
   const { gl, scene, camera } = useThree();
   const sky = useMemo(() => ({ top: { value: new THREE.Color() }, hor: { value: new THREE.Color() }, sunC: { value: new THREE.Color() }, sunD: { value: new THREE.Vector3() }, stars: { value: 0 } }), []);
   const ridgeU = useMemo(() => [0, 1, 2, 3, 4].map(() => ({ col: { value: new THREE.Color() }, fog: { value: new THREE.Color() } })), []);
   const sun = useRef<THREE.DirectionalLight>(null!), hemi = useRef<THREE.HemisphereLight>(null!), lamp = useRef<THREE.PointLight>(null!);
   const M = useMemo(() => ({
     shell: new THREE.MeshPhysicalMaterial({ color: 0xf1ede5, roughness: 0.38, clearcoat: 0.55, clearcoatRoughness: 0.25, sheen: 0.3 }),
-    glass: new THREE.MeshPhysicalMaterial({ color: 0x0c1216, roughness: 0.03, metalness: 0.4, clearcoat: 1, envMapIntensity: 1.8, transparent: true, opacity: 0.62, depthWrite: false }),
+    glass: new THREE.MeshPhysicalMaterial({ color: 0xffffff, map: roomTex(), emissiveMap: roomTex(), emissive: 0xffffff, emissiveIntensity: 0.2, roughness: 0.06, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.4 }),
     room: new THREE.MeshStandardMaterial({ color: 0x8a6646, roughness: 0.8, emissive: 0xff9a4a, emissiveIntensity: 0 }),
-    wood: new THREE.MeshStandardMaterial({ color: 0xa8714a, roughness: 0.7 }), dark: new THREE.MeshStandardMaterial({ color: 0x22262a, roughness: 0.55, metalness: 0.4 }),
+    wood: new THREE.MeshStandardMaterial({ color: 0xa8714a, roughness: 0.7 }), bed: new THREE.MeshStandardMaterial({ color: 0xece6da, roughness: 0.9 }), dark: new THREE.MeshStandardMaterial({ color: 0x22262a, roughness: 0.55, metalness: 0.4 }),
     solar: new THREE.MeshPhysicalMaterial({ color: 0x18213a, roughness: 0.15, metalness: 0.5, clearcoat: 1 }),
     pine: new THREE.MeshStandardMaterial({ color: 0x24301f, roughness: 0.95, side: THREE.DoubleSide }), rock: new THREE.MeshStandardMaterial({ color: 0x7c7a72, roughness: 0.9, flatShading: true }),
     ground: new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1 }),
@@ -86,17 +96,16 @@ function World({ t, mobile }: { t: MutableRefObject<number>; mobile: boolean }) 
   const rocks = useMemo(() => { const g = new THREE.IcosahedronGeometry(1, 2); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(1 + Math.sin(v.x * 3.1) * 0.12 + Math.cos(v.z * 2.7 + v.y) * 0.1); v.y *= 0.6; p.setXYZ(i, v.x, v.y, v.z); } g.computeVertexNormals();
     const spots: [number, number, number][] = [[3.9, 3.4, 0.45], [4.6, 2.6, 0.28], [-4.2, 2.8, 0.6], [-3.4, 4.4, 0.3], [6.5, -2, 0.8]]; const im = new THREE.InstancedMesh(g, M.rock, spots.length), m = new THREE.Matrix4(), q = new THREE.Quaternion();
     spots.forEach(([x, z, k], i) => { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), i * 2.1); m.compose(new THREE.Vector3(x, hgt(x, z) + k * 0.15, z), q, new THREE.Vector3(k, k, k * 1.2)); im.setMatrixAt(i, m); }); im.castShadow = im.receiveShadow = true; return im; }, [M]);
-  const cap = useMemo(() => { const g = new THREE.Group(), w = 4.4, h = 2.6, d = 2.7, y0 = 0.95;
+  const cap = useMemo(() => { const g = new THREE.Group(), w = 4.4 * size, h = 2.6, d = 2.7, y0 = 0.95;
     const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; g.add(o); return o; };
     add(new RoundedBoxGeometry(w, h, d, 8, 1.15), M.shell, 0, y0 + h / 2, 0);
     add(new RoundedBoxGeometry(w - 1.5, h - 0.95, 0.4, 6, 0.18), M.glass, 0, y0 + h / 2 + 0.02, d / 2 - 0.16);
-    add(new THREE.BoxGeometry(w - 1.7, h - 1.15, 0.05), M.room, 0, y0 + h / 2, d / 2 - 0.4).castShadow = false;
     add(new THREE.BoxGeometry(w + 1.6, 0.12, 1.8), M.wood, 0, y0 - 0.06, d / 2 + 0.8);
     for (let i = 0; i < 11; i++) add(new THREE.BoxGeometry(0.018, 0.125, 1.8), M.dark, -(w + 1.6) / 2 + (i + 0.5) * (w + 1.6) / 11, y0 - 0.055, d / 2 + 0.8);
     for (const x of [-w / 2 + 0.5, w / 2 - 0.5]) for (const z of [-d / 2 + 0.5, d / 2 + 1.4]) add(new THREE.CylinderGeometry(0.06, 0.06, 1.4, 12), M.dark, x, y0 - 0.75, z);
     for (let i = 0; i < 3; i++) add(new THREE.BoxGeometry(0.34, 0.08, 1.2), M.wood, w / 2 + 0.98 + i * 0.36, y0 - 0.3 - i * 0.28, d / 2 + 0.8);
     const sol = add(new THREE.BoxGeometry(w * 0.6, 0.05, d * 0.42), M.solar, 0, y0 + h - 0.02, -0.1); sol.rotation.x = -0.05;
-    g.position.set(0, hgt(0, 0) + 0.15, 0); g.rotation.y = -0.38; return g; }, [M]);
+    g.position.set(0, hgt(0, 0) + 0.15, 0); g.rotation.y = -0.38; return g; }, [M, size]);
   useEffect(() => { const pm = new THREE.PMREMGenerator(gl), env = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environment = env; scene.fog = new THREE.Fog(0xffffff, 18, 90); return () => { env.dispose(); pm.dispose(); scene.fog = null; }; }, [gl, scene]);
   const look = useMemo(() => new THREE.Vector3(), []), ptr = useRef({ x: 0, y: 0 });
   useEffect(() => { const f = (e: PointerEvent) => { ptr.current.x = e.clientX / innerWidth - 0.5; ptr.current.y = e.clientY / innerHeight - 0.5; }; addEventListener("pointermove", f, { passive: true }); return () => removeEventListener("pointermove", f); }, []);
@@ -108,13 +117,16 @@ function World({ t, mobile }: { t: MutableRefObject<number>; mobile: boolean }) 
     ridgeU.forEach((u, k) => { u.fog.value.copy(hor); u.col.value.copy(c1).lerp(hor, [0.72, 0.56, 0.4, 0.24, 0.08][k]); });
     sun.current.color.copy(sky.sunC.value); sun.current.intensity = L(A.si, B.si); sun.current.position.copy(sky.sunD.value).multiplyScalar(40).add(new THREE.Vector3(0, 6, 0)); sun.current.position.y = Math.max(4, sun.current.position.y);
     hemi.current.color.set(A.hemi).lerp(c2.set(B.hemi), f); hemi.current.intensity = L(A.hi, B.hi); scene.environmentIntensity = L(A.env, B.env);
-    const win = L(A.win, B.win); M.room.emissiveIntensity = win * 1.6; M.glass.opacity = 0.8 - Math.min(1, win) * 0.4; lamp.current.intensity = win * 22; M.glass.emissive.set(0xffa458); M.glass.emissiveIntensity = 0;
+    const win = L(A.win, B.win); M.glass.emissiveIntensity = 0.12 + win * 0.75; lamp.current.intensity = win * 22; 
     grassMat.color.set(A.grass).lerp(c2.set(B.grass), f); (grassMat as unknown as { u: { time: { value: number } } }).u.time.value = st.clock.elapsedTime;
     const cam = camera as THREE.PerspectiveCamera, p = T / 3, px = ptr.current.x, py = ptr.current.y;
+    if (mode === "hero") {
     if (mobile) cam.position.set(3 - p * 3 + px * 0.4, 3.4 + p * 0.4, 21 + p * 1); else cam.position.set(9.5 - p * 6 + px * 0.9, 3.0 + p * 0.5 - py * 0.3, 18.5 + p * 1.5);
     // keep the capsule at ~2/3 of the frame on desktop (copy sits left), upper-centre on mobile (copy sits low)
     const fx = -cam.position.x, fz = -cam.position.z, n = Math.hypot(fx, fz), rx = -fz / n, rz = fx / n;
     if (mobile) look.set(0, 0.9, 0); else look.set(-rx * 4.6, 3.1, -rz * 4.6);
+    } else { const a = -0.38 + Math.sin(st.clock.elapsedTime * 0.12) * 0.32 + px * 0.3, asp = st.size.width / Math.max(1, st.size.height), r = (mode === "night" ? 13 : 12.5) * Math.max(1, 1.35 / asp);
+      cam.position.set(Math.sin(a) * r, 2.6 - py * 0.4, Math.cos(a) * r); look.set(0, 2.0, 0); }
     cam.lookAt(look);
   });
   return (<>
@@ -124,12 +136,13 @@ function World({ t, mobile }: { t: MutableRefObject<number>; mobile: boolean }) 
     <directionalLight ref={sun} castShadow shadow-mapSize={[mobile ? 1024 : 2048, mobile ? 1024 : 2048]} shadow-bias={-0.0004} shadow-normalBias={0.04} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-camera-far={120} />
     <mesh geometry={ground} material={M.ground} receiveShadow />
     <primitive object={grass} /><primitive object={pines} /><primitive object={rocks} />
-    <primitive object={cap}><pointLight ref={lamp} color={0xffa458} distance={14} decay={1.6} position={[0, 1.6, 3.4]} /></primitive>
+    <primitive object={cap}><pointLight ref={lamp} color={0xffa458} distance={14} decay={1.6} position={[0.4, 2.2, 0.2]} /></primitive>
   </>);
 }
-export default function Valley3D({ t, onReady }: { t: MutableRefObject<number>; onReady?: () => void }) {
+export type Mode = "hero" | "product" | "night";
+export default function Valley3D({ t, onReady, mode = "hero", size = 1 }: { t: MutableRefObject<number>; onReady?: () => void; mode?: Mode; size?: number }) {
   const el = useRef<HTMLDivElement>(null), [on, setOn] = useState(true), [mobile] = useState(() => typeof window !== "undefined" && innerWidth < 768);
   useEffect(() => { const io = new IntersectionObserver(([e]) => setOn(e.isIntersecting)); io.observe(el.current!); return () => io.disconnect(); }, []);
   return (<div ref={el} className="absolute inset-0"><Canvas shadows={{ type: THREE.PCFSoftShadowMap }} frameloop={on ? "always" : "never"} dpr={[1, mobile ? 1.5 : 1.75]} camera={{ fov: mobile ? 50 : 38, near: 0.1, far: 1200, position: [6, 2.6, 12] }}
-    gl={{ antialias: true, powerPreference: "high-performance", toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }} onCreated={() => requestAnimationFrame(() => requestAnimationFrame(() => onReady?.()))}><World t={t} mobile={mobile} /></Canvas></div>);
+    gl={{ antialias: true, powerPreference: "high-performance", toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }} onCreated={() => requestAnimationFrame(() => requestAnimationFrame(() => onReady?.()))}><World t={t} mobile={mobile} mode={mode} size={size} /></Canvas></div>);
 }

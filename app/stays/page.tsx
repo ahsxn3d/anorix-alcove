@@ -1,0 +1,5 @@
+import { Head } from "@/components/UI";
+import { places, valleyText } from "@/lib/data";
+export const metadata = { title: "Stays" };
+export default function Page() { return (<main><Head k="Stays" title={<>Stay in one <em>first.</em></>} lead="22 capsules across five valleys. Book a night, and if you order within 60 days we take the stay off your capsule." />
+  <section className="wrap pb-[clamp(80px,9vw,140px)]"><div className="wrap grid gap-px overflow-hidden rounded-[28px] bg-ink/10 md:grid-cols-2 lg:grid-cols-3">{places.map((p, i) => <a key={p.slug} href={`/stays/${p.slug}`} className="flex min-h-[300px] flex-col bg-sand p-7 transition-colors hover:bg-paper"><span className="text-[13px] tabular-nums text-mute">0{i + 1}</span><p className="display mt-auto text-[38px]">{p.n.split(",")[0]}</p><p className="mt-1 text-[14px] text-mute">{p.n.split(",")[1]} · {p.s}</p><p className="mt-4 text-[15px] leading-[1.6] text-ink/70">{valleyText[p.slug].lead.split(".")[0]}.</p><p className="display mt-5 text-[24px]">{p.from}</p></a>)}</div></section></main>); }

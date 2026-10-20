@@ -1,0 +1,6 @@
+import Capsule from "@/components/Capsule";
+import { Head } from "@/components/UI";
+export const metadata = { title: "About" };
+const p = [["Light on the land", "Four screw piles, no concrete. When a capsule leaves, the meadow grows back in a season."], ["Made indoors", "Built in a workshop in Porto, out of the weather, so the joinery is tight and the site work is one morning."], ["Stay before you buy", "The best way to choose a capsule is to sleep in one. Every valley stay counts towards an order."]];
+export default function Page() { return (<main><Head k="About" title={<>A home <em>anywhere quiet.</em></>} lead="Alcove is a concept by Anorix: off-grid capsule homes and the valleys where you can try them. It is not a real company, and nothing here can be bought." />
+  <section className="bg-paper pb-[clamp(80px,9vw,140px)]"><div className="wrap grid gap-8 lg:grid-cols-12"><div className="relative aspect-[5/4] overflow-hidden rounded-[28px] bg-sand lg:col-span-7"><Capsule hour={1.9} /></div><div className="space-y-8 lg:col-span-5">{p.map(([h, t], i) => <div key={h} className="border-t border-ink/10 pt-6"><p className="text-[13px] text-mute">0{i + 1}</p><p className="display mt-2 text-[32px]">{h}</p><p className="mt-3 text-[16px] leading-[1.6] text-ink/70">{t}</p></div>)}</div></div></section></main>); }
